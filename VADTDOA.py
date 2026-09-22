@@ -48,8 +48,6 @@ def gcc_phat(sig, refsig, fs, max_tau=0.01, interp=1):
 
 
 def leading_speaker(window_audio, speakers, sr, max_tau=0.01):
-    """Returns the speaker whose mic the sound reaches earliest (closest to
-    the true talker), based on pairwise GCC-PHAT delay estimates."""
     lag_sum = {spk: 0.0 for spk in speakers}
     for i, spk_i in enumerate(speakers):
         for spk_j in speakers[i + 1:]:
@@ -61,9 +59,6 @@ def leading_speaker(window_audio, speakers, sr, max_tau=0.01):
 
 def verify_segments_with_tdoa(segments, waveforms, speakers, sr=16000,
                                max_tau=0.01, min_seg_for_tdoa=0.05):
-    """Re-check each energy-derived segment against TDOA. Overrides the label
-    whenever TDOA disagrees, to catch gain/bleed-driven mistakes.
-    `waveforms` is the same dict already loaded by load_all_channels."""
     verified = []
     for spk, start, end in segments:
         s_idx, e_idx = int(start * sr), int(end * sr)
@@ -148,12 +143,12 @@ def energy_based_diarization(speaker_files, session_id, output_rttm,
             merged.append((spk, s, e))
     segments = merged
 
-    # ---- TDOA check, run as the final step on the finished segments ----
+    
     if use_tdoa:
         segments = verify_segments_with_tdoa(
             segments, audio, speakers, sr=sr, max_tau=tdoa_max_tau
         )
-        # re-merge in case TDOA relabeled two adjacent segments to the same speaker
+    
         re_merged = []
         for spk, s, e in segments:
             if re_merged and re_merged[-1][0] == spk and abs(re_merged[-1][2] - s) < 1e-6:
